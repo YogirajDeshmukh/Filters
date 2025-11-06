@@ -37,7 +37,13 @@ fun ImageEnhancementScreen() {
             modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Text("AI Image Enhancement", style = MaterialTheme.typography.titleLarge)
+            Text("AI Image Enhancement",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(16.dp)
+                                    .wrapContentSize()
+                    .align(Alignment.CenterHorizontally),
+
+                )
 
             Button(onClick = { launcher.launch("image/*") }) {
                 Text("Pick Image")
