@@ -1,6 +1,5 @@
 package com.example.filter
 
-
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -13,17 +12,24 @@ class ImageProcessorImpl(
 ) : ImageProcessor {
 
     override suspend fun enhanceImage(imagePath: String): String {
+        // Load ESRGAN model
         val model = ESRGANModelInterpreter(context)
 
+        // Decode original image
         val originalBitmap = BitmapFactory.decodeFile(imagePath)
-        val enhancedBitmap = model.enhanceImage(originalBitmap)
+            ?: throw IllegalArgumentException("Unable to decode image at: $imagePath")
 
-        // Save enhanced image in cache directory
-        val outputFile = File(context.cacheDir, "enhanced_${System.currentTimeMillis()}.jpg")
-        FileOutputStream(outputFile).use {
-            enhancedBitmap.compress(Bitmap.CompressFormat.JPEG, 95, it)
+        // Enhance image using ESRGAN
+        val enhancedBitmap: Bitmap = model.enhanceImage(originalBitmap)
+
+        // 🔹 Save temporarily (in app cache)
+        val tempFile = File(context.cacheDir, "enhanced_temp_${System.currentTimeMillis()}.jpg")
+        FileOutputStream(tempFile).use { out ->
+            enhancedBitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
+            out.flush()
         }
 
-        return outputFile.absolutePath
+        // Return the temporary file path
+        return tempFile.absolutePath
     }
 }

@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.filter.ImageProcessorImpl
+import com.example.filter.domain.BackgroundOption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
@@ -30,33 +30,30 @@ import java.io.FileOutputStream
 import android.media.MediaScannerConnection
 
 /**
- * Image Enhancement Screen using ESRGAN model.
- * Allows users to pick an image, enhance it, preview, and save the result.
+ * Background Removal Screen using ML Kit Selfie Segmentation.
+ * Allows users to pick an image, select a background style, remove background, and save result.
  */
 @Composable
-fun ImageEnhancementScreen() {
+fun BackgroundRemovalScreen() {
     val context = LocalContext.current
 
-    // ✅ ViewModel
-    val viewModel: ImageEnhancementViewModel = viewModel(
+    // ✅ ViewModel setup
+    val viewModel: BackgroundRemovalViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
-                return ImageEnhancementViewModel(context) as T
+                return BackgroundRemovalViewModel(context) as T
             }
         }
     )
 
-    val enhancedBitmap by viewModel.enhancedImage.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
 
     var selectedImagePath by remember { mutableStateOf<String?>(null) }
     var selectedBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
-    val coroutineScope = rememberCoroutineScope()
-    val imageProcessor = remember { ImageProcessorImpl(context) }
-
-    // Gallery picker
+    // ✅ Image picker
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -64,6 +61,7 @@ fun ImageEnhancementScreen() {
             val path = getRealPathFromUri(context, it)
             selectedImagePath = path
             selectedBitmap = BitmapFactory.decodeFile(path)
+            selectedBitmap?.let { bmp -> viewModel.selectOriginal(bmp) }
         }
     }
 
@@ -77,64 +75,70 @@ fun ImageEnhancementScreen() {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("✨ Image Enhancement", style = MaterialTheme.typography.titleLarge)
+            Text("Background Removal", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Select image button
+            // Select Image
             Button(onClick = { imagePicker.launch("image/*") }) {
                 Text("Select Image from Gallery")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Enhance button
-            selectedImagePath?.let { path ->
-                Button(
-                    onClick = {
-                        coroutineScope.launch(Dispatchers.Default) {
-                            viewModel.enhance(path)
-                        }
-                    },
-                    enabled = !isLoading
-                ) {
-                    Text(if (isLoading) "Enhancing..." else "Enhance Image")
-                }
+            // Option Selector
+            BackgroundOptionSelector(
+                currentOption = uiState.option,
+                onOptionChange = { viewModel.changeOption(it) }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Remove Background button
+            Button(
+                onClick = {
+                    coroutineScope.launch(Dispatchers.Default) {
+                        viewModel.removeBackground()
+                    }
+                },
+                enabled = !uiState.isLoading && uiState.original != null
+            ) {
+                Text(if (uiState.isLoading) "Processing..." else "Remove Background")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (isLoading) {
+            if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.padding(16.dp))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Display images side by side
+            // Image Preview Section
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                selectedBitmap?.let {
+                uiState.original?.let {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Original")
                         Spacer(modifier = Modifier.height(8.dp))
                         Image(
                             bitmap = it.asImageBitmap(),
-                            contentDescription = "Original Image",
+                            contentDescription = "Original",
                             modifier = Modifier.size(150.dp)
                         )
                     }
                 }
 
-                enhancedBitmap?.let {
+                uiState.result?.let {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Enhanced")
+                        Text("Result")
                         Spacer(modifier = Modifier.height(8.dp))
                         Image(
                             bitmap = it.asImageBitmap(),
-                            contentDescription = "Enhanced Image",
+                            contentDescription = "Result",
                             modifier = Modifier.size(150.dp)
                         )
                     }
@@ -143,27 +147,52 @@ fun ImageEnhancementScreen() {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Save button
-            enhancedBitmap?.let { bitmap ->
+            // Save Button
+            uiState.result?.let { bitmap ->
                 Button(
                     onClick = {
-                        val savedPath = saveEnhancedImageToGallery(context, bitmap)
+                        val savedPath = saveImageToGallery(context, bitmap)
                         Toast.makeText(
                             context,
                             "✅ Saved to Gallery!\n📁 $savedPath",
                             Toast.LENGTH_LONG
                         ).show()
                     },
-                    enabled = !isLoading
+                    enabled = !uiState.isLoading
                 ) {
-                    Text("Save Enhanced Image")
+                    Text("Save Result Image")
                 }
             }
         }
     }
 }
 
-// ✅ Utility — Decode URI to Bitmap and save temporarily
+/**
+ * Selector for choosing background style (Transparent / Solid / Blur)
+ */
+@Composable
+fun BackgroundOptionSelector(currentOption: BackgroundOption, onOptionChange: (BackgroundOption) -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text("Select Background Type:")
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+            BackgroundOption.entries.forEach { option ->
+                val selected = option == currentOption
+                FilterChip(
+                    selected = selected,
+                    onClick = { onOptionChange(option) },
+                    label = { Text(option.name) },
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Utility: Converts URI to a local file path by saving a temp copy
+ */
 private fun getRealPathFromUri(context: android.content.Context, uri: Uri): String? {
     return try {
         val bitmap = if (Build.VERSION.SDK_INT < 28) {
@@ -186,9 +215,11 @@ private fun getRealPathFromUri(context: android.content.Context, uri: Uri): Stri
     }
 }
 
-// ✅ Utility — Save final enhanced image to gallery
-private fun saveEnhancedImageToGallery(context: android.content.Context, bitmap: Bitmap): String {
-    val filename = "enhanced_${System.currentTimeMillis()}.jpg"
+/**
+ * Utility: Saves the result image to the Pictures/FilterApp folder.
+ */
+private fun saveImageToGallery(context: android.content.Context, bitmap: Bitmap): String {
+    val filename = "bg_removed_${System.currentTimeMillis()}.png"
     val picturesDir = File(
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
         "FilterApp"
@@ -197,14 +228,14 @@ private fun saveEnhancedImageToGallery(context: android.content.Context, bitmap:
 
     val file = File(picturesDir, filename)
     FileOutputStream(file).use { out ->
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
         out.flush()
     }
 
     MediaScannerConnection.scanFile(
         context,
         arrayOf(file.absolutePath),
-        arrayOf("image/jpeg"),
+        arrayOf("image/png"),
         null
     )
 

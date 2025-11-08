@@ -67,6 +67,8 @@ kotlin {
 
                 // ML Kit - Segmentation
                 implementation("com.google.mlkit:segmentation-selfie:16.0.0-beta3")
+                implementation("com.google.mlkit:segmentation-selfie:16.0.0-beta5")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
                 // CameraX
                 implementation("androidx.camera:camera-core:1.3.0")
