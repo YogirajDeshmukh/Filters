@@ -11,4 +11,6 @@ actual class ImageEnhancer actual constructor() {
     }
 
     actual fun close() {}
+    actual fun attachContext(context: Any) {
+    }
 }

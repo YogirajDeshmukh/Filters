@@ -8,12 +8,10 @@ import java.nio.ByteOrder
 
 object ImagePreprocessor {
 
-    /**
-     * Prepares the image for the ESRGAN model:
-     * - Pads rectangular images to square
-     * - Resizes to the model input size
-     * - Normalizes pixel values (0–255 → 0–1)
-     */
+
+    // Prepares the image for the ESRGAN model: Pads rectangular images to square Resizes to the model input size
+    //Makes Normalizes pixel values (0–255 → 0–1)
+
     fun preprocess(bitmap: Bitmap, inputSize: Int = 128): ByteBuffer {
         val squareBitmap = padToSquare(bitmap)
         val resizedBitmap = Bitmap.createScaledBitmap(squareBitmap, inputSize, inputSize, true)

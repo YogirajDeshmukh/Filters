@@ -22,7 +22,7 @@ class ImageProcessorImpl(
         // Enhance image using ESRGAN
         val enhancedBitmap: Bitmap = model.enhanceImage(originalBitmap)
 
-        // 🔹 Save temporarily (in app cache)
+        //  Save temporarily (in app cache)
         val tempFile = File(context.cacheDir, "enhanced_temp_${System.currentTimeMillis()}.jpg")
         FileOutputStream(tempFile).use { out ->
             enhancedBitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)

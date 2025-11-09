@@ -29,15 +29,14 @@ import java.io.File
 import java.io.FileOutputStream
 import android.media.MediaScannerConnection
 
-/**
- * Image Enhancement Screen using ESRGAN model.
- * Allows users to pick an image, enhance it, preview, and save the result.
- */
+
+//Allows users to pick an image, enhance it, preview, and save the result.
+
 @Composable
 fun ImageEnhancementScreen() {
     val context = LocalContext.current
 
-    // ✅ ViewModel
+    // ViewModel
     val viewModel: ImageEnhancementViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -77,7 +76,7 @@ fun ImageEnhancementScreen() {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("✨ Image Enhancement", style = MaterialTheme.typography.titleLarge)
+            Text("Image Enhancement", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(16.dp))
 
             // Select image button
@@ -150,7 +149,7 @@ fun ImageEnhancementScreen() {
                         val savedPath = saveEnhancedImageToGallery(context, bitmap)
                         Toast.makeText(
                             context,
-                            "✅ Saved to Gallery!\n📁 $savedPath",
+                            "Saved to Gallery!\n $savedPath",
                             Toast.LENGTH_LONG
                         ).show()
                     },
@@ -163,7 +162,7 @@ fun ImageEnhancementScreen() {
     }
 }
 
-// ✅ Utility — Decode URI to Bitmap and save temporarily
+// URI to Bitmap and save temporarily
 private fun getRealPathFromUri(context: android.content.Context, uri: Uri): String? {
     return try {
         val bitmap = if (Build.VERSION.SDK_INT < 28) {
@@ -186,7 +185,7 @@ private fun getRealPathFromUri(context: android.content.Context, uri: Uri): Stri
     }
 }
 
-// ✅ Utility — Save final enhanced image to gallery
+//Save final enhanced image to gallery
 private fun saveEnhancedImageToGallery(context: android.content.Context, bitmap: Bitmap): String {
     val filename = "enhanced_${System.currentTimeMillis()}.jpg"
     val picturesDir = File(

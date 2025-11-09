@@ -29,15 +29,15 @@ import java.io.File
 import java.io.FileOutputStream
 import android.media.MediaScannerConnection
 
-/**
- * Background Removal Screen using ML Kit Selfie Segmentation.
- * Allows users to pick an image, select a background style, remove background, and save result.
- */
+
+//Background Removal Screen using ML Kit.
+// Allows users to pick an image, select a background style, remove background, and save result.
+
 @Composable
 fun BackgroundRemovalScreen() {
     val context = LocalContext.current
 
-    // ✅ ViewModel setup
+    // ViewModel setup
     val viewModel: BackgroundRemovalViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -53,7 +53,7 @@ fun BackgroundRemovalScreen() {
     var selectedImagePath by remember { mutableStateOf<String?>(null) }
     var selectedBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
-    // ✅ Image picker
+    // pick Image
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -154,7 +154,7 @@ fun BackgroundRemovalScreen() {
                         val savedPath = saveImageToGallery(context, bitmap)
                         Toast.makeText(
                             context,
-                            "✅ Saved to Gallery!\n📁 $savedPath",
+                            "Saved to Gallery!\n $savedPath",
                             Toast.LENGTH_LONG
                         ).show()
                     },
@@ -167,9 +167,9 @@ fun BackgroundRemovalScreen() {
     }
 }
 
-/**
- * Selector for choosing background style (Transparent / Solid / Blur)
- */
+
+//Selector for choosing background style (Transparent / Solid  )
+
 @Composable
 fun BackgroundOptionSelector(currentOption: BackgroundOption, onOptionChange: (BackgroundOption) -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -190,9 +190,9 @@ fun BackgroundOptionSelector(currentOption: BackgroundOption, onOptionChange: (B
     }
 }
 
-/**
- * Utility: Converts URI to a local file path by saving a temp copy
- */
+
+//Converts URI to a local file path by saving a temp copy
+
 private fun getRealPathFromUri(context: android.content.Context, uri: Uri): String? {
     return try {
         val bitmap = if (Build.VERSION.SDK_INT < 28) {
@@ -215,9 +215,9 @@ private fun getRealPathFromUri(context: android.content.Context, uri: Uri): Stri
     }
 }
 
-/**
- * Utility: Saves the result image to the Pictures/FilterApp folder.
- */
+
+// Saves the result image to the FilterApp folder.
+
 private fun saveImageToGallery(context: android.content.Context, bitmap: Bitmap): String {
     val filename = "bg_removed_${System.currentTimeMillis()}.png"
     val picturesDir = File(

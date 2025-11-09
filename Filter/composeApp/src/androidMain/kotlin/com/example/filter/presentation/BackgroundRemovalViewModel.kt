@@ -43,10 +43,10 @@ class BackgroundRemovalViewModel(context: Context) : ViewModel() {
             try {
                 _uiState.value = _uiState.value.copy(isLoading = true)
 
-                // ✅ Wrap Bitmap into ImageData before sending to domain
+                // Wrap Bitmap into ImageData before sending to domain
                 val resultImageData = useCase.execute(ImageData(originalBitmap), option)
 
-                // ✅ Extract Bitmap from ImageData to update UI
+                // Extract Bitmap from ImageData to update UI
                 val resultBitmap = resultImageData.bitmap
 
                 _uiState.value = _uiState.value.copy(

@@ -25,10 +25,10 @@ class ImageEnhancementViewModel(private val context: Context) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    /**
-     * Enhances the image located at [imagePath],
-     * saves the enhanced image, and updates the state with the new Bitmap + path.
-     */
+
+   //Enhances the image located at [imagePath],\
+    // saves the enhanced image, and updates the state with the new Bitmap + path.
+
     fun enhance(imagePath: String) {
         viewModelScope.launch(Dispatchers.IO) {
             _isLoading.value = true

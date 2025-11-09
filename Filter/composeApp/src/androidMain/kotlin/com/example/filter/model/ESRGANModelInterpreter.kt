@@ -18,7 +18,7 @@ class ESRGANModelInterpreter(private val context: Context) {
     private lateinit var interpreter: Interpreter
 
     init {
-        Log.d("ImageEnhancer", "Initializing ESRGAN model...")
+        Log.d("ImageEnhancer", "Initializing ESRGAN model")
         loadModel("RealESRGAN_x4plus_float.tflite")
     }
 
@@ -30,10 +30,10 @@ class ESRGANModelInterpreter(private val context: Context) {
         }
 
         interpreter = Interpreter(buffer, options)
-        Log.d("ImageEnhancer", "✅ ESRGAN model loaded and interpreter initialized.")
+        Log.d("ImageEnhancer", "ESRGAN model loaded and interpreter initialized.")
     }
 
-    // 🔒 Safe loader: works even if .tflite is compressed in AAB
+    // loader to load  .tflite even it is compressed
     private fun loadModelFileSafe(modelName: String): ByteBuffer {
         val assetManager = context.assets
         assetManager.open(modelName).use { input ->
@@ -42,7 +42,7 @@ class ESRGANModelInterpreter(private val context: Context) {
             buffer.order(ByteOrder.nativeOrder())
             buffer.put(bytes)
             buffer.rewind()
-            Log.d("ImageEnhancer", "✅ Model loaded into memory (${bytes.size} bytes)")
+            Log.d("ImageEnhancer", "Model loaded into memory (${bytes.size} bytes)")
             return buffer
         }
     }
@@ -51,7 +51,7 @@ class ESRGANModelInterpreter(private val context: Context) {
         val origWidth = bitmap.width
         val origHeight = bitmap.height
 
-        // 🔹 Preprocess: pad to square and resize to model input
+        // Preprocess: pad to square and resize to model input
         val inputBuffer = ImagePreprocessor.preprocess(bitmap)
         val outputShape = intArrayOf(1, 512, 512, 3)
         val outputBuffer = TensorBuffer.createFixedSize(outputShape, org.tensorflow.lite.DataType.FLOAT32)
@@ -59,17 +59,21 @@ class ESRGANModelInterpreter(private val context: Context) {
         Log.d("ImageEnhancer", "Running model inference...")
         interpreter.run(inputBuffer, outputBuffer.buffer.rewind())
 
-        // 🔹 Convert output tensor to Bitmap
+        // Convert output tensor to Bitmap
+
+
         val enhanced = BitmapUtils.convertTensorToBitmap(outputBuffer, 512, 512)
 
-        // 🔹 Crop back to original aspect ratio
+        // Crop back to original aspect ratio
+
+
         val finalBitmap = cropToOriginalAspect(enhanced, origWidth, origHeight)
-        Log.d("ImageEnhancer", "✅ Image enhanced successfully (output: ${finalBitmap.width}x${finalBitmap.height})")
+        Log.d("ImageEnhancer", "Image enhanced successfully (output: ${finalBitmap.width}x${finalBitmap.height})")
 
         return finalBitmap
     }
 
-    // 🔹 Maintain original aspect ratio by cropping excess parts
+    // Maintain original aspect ratio by cropping excess parts
     private fun cropToOriginalAspect(enhanced: Bitmap, origWidth: Int, origHeight: Int): Bitmap {
         val targetRatio = origWidth.toFloat() / origHeight.toFloat()
         val width = enhanced.width

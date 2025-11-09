@@ -12,10 +12,8 @@ import androidx.compose.ui.unit.dp
 import com.example.filter.presentation.ImageEnhancementScreen
 import com.example.filter.presentation.BackgroundRemovalScreen
 
-/**
- * Main entry point for the Filter app.
- * Provides navigation between Image Enhancement and Background Removal features.
- */
+// entry point  app.navigation between Image Enhancement and Background Removal features.
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,9 +47,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/**
- * Simple Home Screen with feature navigation buttons.
- */
+// Simple Home Screen
 @Composable
 fun HomeScreen(
     onEnhanceClick: () -> Unit,
@@ -78,9 +74,7 @@ fun HomeScreen(
     }
 }
 
-/**
- * Reusable layout wrapper for feature screens (adds title and back button).
- */
+// Reusable layout wrapper for feature screens ,add title and back button.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeatureWrapper(
@@ -94,7 +88,7 @@ fun FeatureWrapper(
                 title = { },
                 navigationIcon = {
                     TextButton(onClick = onBack) {
-                        Text("⬅ Back")
+                        Text(" Back")
                     }
                 }
             )
